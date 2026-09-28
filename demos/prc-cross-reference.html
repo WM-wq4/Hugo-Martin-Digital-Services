@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>PRC Cross-Reference Search — Demo</title>
+<style>
+:root{--ink:#172033;--muted:#637083;--line:#dfe5ec;--soft:#f6f8fb;--navy:#17324d;--blue:#2469b2;--white:#fff}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);background:var(--soft)}
+.wrap{max-width:1100px;margin:auto;padding:36px 22px 56px}
+.demo{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--blue)}
+h1{font-family:Georgia,"Times New Roman",serif;color:var(--navy);font-size:clamp(2rem,5vw,3.7rem);line-height:1.05;margin:.5rem 0}
+.lead{color:var(--muted);max-width:760px;margin:0 0 26px}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 12px 35px rgba(23,50,77,.08)}
+.searchbar{display:flex;gap:10px;flex-wrap:wrap}
+input{flex:1;min-width:240px;padding:15px 16px;border:1px solid #cfd8e3;border-radius:11px;font-size:1rem;outline:none}
+input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(36,105,178,.12)}
+button{border:0;border-radius:11px;padding:0 18px;background:var(--navy);color:white;font-weight:750;cursor:pointer}
+.meta{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:.9rem;margin:16px 2px 8px}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:white}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{padding:12px 13px;border-bottom:1px solid #edf0f4;text-align:left;font-size:.9rem}
+th{position:sticky;top:0;background:#eef3f8;color:var(--navy);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+tr:hover td{background:#fafcff}
+mark{background:#fff0a6;padding:1px 2px;border-radius:3px}
+.empty{display:none;text-align:center;padding:34px;color:var(--muted)}
+.note{margin-top:18px;padding:16px 18px;border-left:4px solid #8fa5b9;background:#eef3f8;color:#4d5e70;font-size:.88rem}
+.source{margin-top:14px;color:var(--muted);font-size:.8rem}
+@media(max-width:620px){button{width:100%;height:46px}.wrap{padding:25px 14px 40px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="demo">Prototype • not affiliated with Precision Resistor Company</div>
+<h1>Competitor Cross-Reference Search</h1>
+<p class="lead">Search any published part number or manufacturer name to find the corresponding row in PRC's public cross-reference guide. Punctuation and case are ignored.</p>
+
+<section class="panel">
+  <div class="searchbar">
+    <input id="q" autocomplete="off" placeholder="Try: WWA-23, RB56, Kelvin, SA16…" aria-label="Search cross-reference">
+    <button id="clear" type="button">Clear</button>
+  </div>
+  <div class="meta"><span id="count"></span><span>Searches all columns instantly</span></div>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>MIL</th><th>PRC</th><th>Dale</th><th>RCL</th><th>Kelvin</th><th>Ultronix</th><th>Riedon</th><th>GTG</th><th>Tel Labs</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty">No published match found. Verify the part number or contact PRC engineering.</div>
+  </div>
+  <div class="note"><strong>Verification notice:</strong> Cross-reference information is a suggestion guide only. Users should verify interchangeability against each manufacturer's current specifications. This prototype does not independently certify equivalence.</div>
+  <div class="source">Prototype data transcribed from PRC's public Cross Reference Guide for demonstration and testing.</div>
+</section>
+</main>
+
+<script>
+const data = [
+["","SX062N","MWA-8","7003","460-P","102A","","","SA29"],
+["","SX093N","WWA-13","7006","EP01","103A","","","SA9"],
+["","SX154N","","7007","EP20","184A","","","SA21"],
+["","SX156N","","","470-P","185A","","","SA10"],
+["RB56","HR256N","WWA-23","7009","417-P","202A","","1108AL","SA16"],
+["RBS5","HR258N","WWA-24","7010","467-P","205A","","1608AL","SA1"],
+["RB54","HR2512N","WWA-26","7020","812-P","207A","","2408AL","SA2"],
+["RB53","HR3712N","WWA-36","7030","815-P","307A","","2412AL","SA3"],
+["RB52","HR3716N","WWA-38","7040","254-P","310A","","3212AL","SA4"],
+["RB57","HR5016N","WWA-48","7050","EP-27","510A","","3216AL","SA5"],
+["RB58","HR5024N","WWA-412","7060","EP-28","515A","","4816AL","SA6"],
+["R859","HR5032N","WWA-416","7070","EP-29","520A","","6416AL","SAT"],
+["R870","RX378N","","4065","179-P","","","1612PC","PW20"],
+["R871","RX255N","WWP-22","4060","991-P","203PA","","1008PC","PW1"],
+["","SM041","","","","","UT-1/2A","",""],
+["","SM062","RS-1/4","T-1/2A","KM025","MS1","UT-1/2A","CG1/2A","EL1/4"],
+["","SM063","RS-1/2","T-1/2","KM050","MS1","UT-1/2","CG1","EL1/2"],
+["RW70","SM094","RS-1A","T-1A-70","KM100","MS2","UT-1A","CG2",""],
+["","SM076","RS-1B","T-1B","","","UT-2","CG3","EL1B"],
+["","SM156","","T-2A","KM200","MS3","UT-2","CG5S","EL2F"],
+["","SM1711","RS-2A","T-2B","KM301","CS5","UT-2A","CG4","EL2A"],
+["RW69","SM186","RS-2C","T-2A-69","KM250","CS3","UT-2A","CG5","EL2E"],
+["RW79","SM177","RS-2B","T-2B-79","KM300","CS4","UT-2B","CG6","EL21"],
+["","SM228","RS-2","T-3","KM350","","UT-3","CG7","EL2"],
+["RW74","SM2812","RS-5-69","T-5-74","KM500","CS6","UT-5","CG8","EL5"],
+["RW67","SM3114","","T-6-67","","CS7","UT-6","CG13","EL5A"],
+["RW78","SM3726","RS-10-38","T-10-78","KM1000","CS10","UT-10","CG10","EL10A"]
+];
+
+const headers=["MIL","PRC","DALE","RCL","KELVIN","ULTRONIX","RIEDON","GTG","TEL LABS"];
+const tbody=document.getElementById("rows"), input=document.getElementById("q"), empty=document.getElementById("empty"), count=document.getElementById("count");
+const norm=s=>String(s||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+function render(){
+ const raw=input.value.trim(), n=norm(raw);
+ const matched=data.filter(r=>!n||r.some(v=>norm(v).includes(n)));
+ tbody.innerHTML=matched.map(r=>"<tr>"+r.map(v=>"<td>"+esc(v||"—")+"</td>").join("")+"</tr>").join("");
+ count.textContent=n?matched.length+" matching row"+(matched.length===1?"":"s"):data.length+" published mappings shown";
+ empty.style.display=matched.length?"none":"block";
+}
+input.addEventListener("input",render);
+document.getElementById("clear").addEventListener("click",()=>{input.value="";render();input.focus()});
+render();
+</script>
+</body>
+</html>
