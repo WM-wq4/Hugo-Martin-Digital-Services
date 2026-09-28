@@ -31,7 +31,7 @@ button{border:0;border-radius:10px;padding:11px 14px;font-weight:750;background:
 <div class="field"><label for="height">Height</label><select id="height"><option>48</option><option>60</option><option>72</option></select></div>
 <div class="field"><label for="bays">Number of bays</label><input id="bays" type="number" min="1" max="20" value="3"></div>
 <div class="field"><label for="panel">Side panel material</label><select id="panel"><option value="hpl">HPL</option><option value="metal">Metal</option><option value="acrylic">Acrylic</option></select></div>
-<div class="actions"><button id="build">Build list</button><button class="secondary" id="reset">Reset</button></div>
+<div class="actions"><button id="build" type="button">Build list</button><button class="secondary" id="reset" type="button">Reset</button></div><div id="status" aria-live="polite" style="margin-top:10px;font-size:.86rem;color:var(--muted)">Adjust the options, then click Build list.</div>
 </section>
 
 <section>
@@ -58,7 +58,7 @@ function panelSku(face,height,panel){
 }
 function render(){
  let face=$("face").value, h=parseInt($("height").value,10), bays=Math.max(1,Math.min(20,parseInt($("bays").value,10)||1)), panel=$("panel").value;
- if(face==="single" && h===48===false && ![48,60,72].includes(h)) h=48;
+ if(![48,60,72].includes(h)) h=48;
  const start = face==="single" ? `IC-S${h}S` : `IC-D${h}S`;
  const add = face==="single" ? `IC-S${h}A` : `IC-D${h}A`;
  const side = panelSku(face,h,panel);
@@ -72,10 +72,11 @@ function render(){
  $("sumBays").textContent=bays;
  $("sumWidth").textContent=(38+(bays-1)*36)+" in";
  $("sumItems").textContent=rows.length;
+ $("status").textContent=`Built ${rows.length} line item${rows.length===1?"":"s"} for ${bays} bay${bays===1?"":"s"}.`;
 }
-["face","height","bays","panel"].forEach(id=>$(id).addEventListener("input",render));
-$("build").onclick=render;
-$("reset").onclick=()=>{$("face").value="single";$("height").value="48";$("bays").value=3;$("panel").value="hpl";render()};
+["face","height","bays","panel"].forEach(id=>$(id).addEventListener("input",()=>{$("status").textContent="Selections changed. Click Build list to update the bill of materials."; }));
+$("build").addEventListener("click",render);
+$("reset").addEventListener("click",()=>{$("face").value="single";$("height").value="48";$("bays").value=3;$("panel").value="hpl";render();$("status").textContent="Reset to defaults and rebuilt the list.";});
 render();
 </script>
 </body>
