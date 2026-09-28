@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Interactive Product Selector Prototype</title>
+<style>
+:root{--ink:#152033;--muted:#637083;--navy:#17324d;--line:#dfe5ec;--soft:#f7f9fc;--blue:#2768ae}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--soft);color:var(--ink)}
+.wrap{max-width:1100px;margin:auto;padding:36px 20px 60px}.eyebrow{font-size:.76rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--blue)}
+h1{font:700 clamp(2.2rem,5vw,4rem)/1.02 Georgia,serif;color:var(--navy);margin:.6rem 0 1rem}.lead{max-width:800px;color:var(--muted);font-size:1.05rem}
+.grid{display:grid;grid-template-columns:330px 1fr;gap:22px;margin-top:28px}.panel,.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 30px rgba(23,50,77,.06)}
+.panel{padding:20px;align-self:start}.field{margin-bottom:18px}.field label{display:block;font-weight:750;margin-bottom:7px;color:var(--navy)}
+select,input[type=number]{width:100%;padding:12px 13px;border:1px solid #cfd8e3;border-radius:10px;background:white;font-size:.96rem}
+.check{display:flex;gap:9px;align-items:flex-start;margin:10px 0}.check input{margin-top:4px}.actions{display:flex;gap:9px;margin-top:18px}
+button{padding:11px 15px;border:0;border-radius:10px;font-weight:750;cursor:pointer;background:var(--navy);color:white}button.secondary{background:#eaf0f6;color:var(--navy)}
+.resultsHead{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px;color:var(--muted)}.cards{display:grid;gap:14px}.card{padding:19px}
+.card h2{margin:0 0 6px;font-size:1.25rem;color:var(--navy)}.specs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 18px;margin-top:12px}.spec{font-size:.91rem}.spec b{color:var(--navy)}
+.match{display:inline-block;font-size:.74rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#24613c;background:#eaf7ef;padding:5px 8px;border-radius:999px}
+.empty{display:none;background:white;border:1px dashed #bdc7d3;border-radius:16px;padding:30px;color:var(--muted);text-align:center}
+.note{margin-top:22px;padding:16px 18px;background:#eef3f8;border-left:4px solid #8ca0b4;font-size:.88rem;color:#506072}
+@media(max-width:820px){.grid{grid-template-columns:1fr}.specs{grid-template-columns:1fr}}
+</style>
+</head>
+<body><main class="wrap">
+<div class="eyebrow">Reference implementation • not affiliated with Harvard Apparatus</div>
+<h1>Interactive Pump Selector</h1>
+<p class="lead">A proof-of-concept showing how a static product-selection table can become a rule-based web selector. Results are filtered only by specifications clearly stated in the source guide.</p>
+<div class="grid">
+<section class="panel">
+ <div class="field"><label for="channels">Minimum simultaneous channels</label><select id="channels"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+ <div class="field"><label for="diameter">Required tube inner diameter (mm)</label><input id="diameter" type="number" min="0.13" max="8" step="0.01" value="1"></div>
+ <label class="check"><input id="computer" type="checkbox"><span>Computer control required</span></label>
+ <label class="check"><input id="weight" type="checkbox"><span>Weight-scale feedback required</span></label>
+ <label class="check"><input id="remote" type="checkbox"><span>Remote pump head required for incubator/fume hood</span></label>
+ <div class="actions"><button id="apply">Find matches</button><button id="reset" class="secondary">Reset</button></div>
+</section>
+<section>
+ <div class="resultsHead"><strong id="count"></strong><span>Source: 2024 Pump Selection Guide</span></div>
+ <div class="cards" id="cards"></div><div class="empty" id="empty">No model in this source table satisfies every selected requirement. Technical review is required.</div>
+</section>
+</div>
+<div class="note"><strong>Prototype limitation:</strong> this is a demonstration of deterministic filtering, not an engineering recommendation. Product information is subject to change. Final selection should be verified against current manufacturer documentation and technical support.</div>
+</main>
+<script>
+const products=[
+{name:"P70",minCh:1,maxCh:5,minDia:.13,maxDia:2.79,computer:"optional",weight:false,remote:true,rollers:"8",ip:"IP32"},
+{name:"P1500",minCh:1,maxCh:1,minDia:.8,maxDia:8,computer:"optional",weight:false,remote:true,rollers:"4",ip:"IP32"},
+{name:"P1500 Weight Scale Integration",minCh:1,maxCh:1,minDia:.8,maxDia:8,computer:"yes",weight:true,remote:true,rollers:"4",ip:"IP32"},
+{name:"Masterflex Reglo",minCh:2,maxCh:4,minDia:.13,maxDia:3.17,computer:"no",weight:false,remote:false,rollers:"6–12",ip:"IP31"},
+{name:"Masterflex Reglo ICC",minCh:2,maxCh:4,minDia:.13,maxDia:3.17,computer:"no",weight:false,remote:false,rollers:"6–12",ip:"IP31"}
+];
+const $=id=>document.getElementById(id);
+function render(){
+ const ch=+$("channels").value,dia=+$("diameter").value,comp=$("computer").checked,weight=$("weight").checked,remote=$("remote").checked;
+ const m=products.filter(p=>ch>=p.minCh&&ch<=p.maxCh&&dia>=p.minDia&&dia<=p.maxDia&&(!comp||p.computer!=="no")&&(!weight||p.weight)&&(!remote||p.remote));
+ $("cards").innerHTML=m.map(p=>'<article class="card"><span class="match">Matches selected constraints</span><h2>'+p.name+'</h2><div class="specs"><div class="spec"><b>Channels:</b> '+(p.minCh===p.maxCh?p.maxCh:p.minCh+"–"+p.maxCh)+'</div><div class="spec"><b>Tube ID:</b> '+p.minDia+'–'+p.maxDia+' mm</div><div class="spec"><b>Computer control:</b> '+(p.computer==="optional"?"Optional":p.computer==="yes"?"Yes":"No")+'</div><div class="spec"><b>Weight feedback:</b> '+(p.weight?"Yes":"No")+'</div><div class="spec"><b>Remote pump head:</b> '+(p.remote?"Yes":"No")+'</div><div class="spec"><b>Rollers:</b> '+p.rollers+'</div><div class="spec"><b>Enclosure:</b> '+p.ip+'</div></div></article>').join("");
+ $("count").textContent=m.length+" matching model"+(m.length===1?"":"s");
+ $("empty").style.display=m.length?"none":"block";
+}
+$("apply").onclick=render;["channels","diameter","computer","weight","remote"].forEach(id=>$(id).addEventListener("change",render));
+$("reset").onclick=()=>{$("channels").value="1";$("diameter").value="1";$("computer").checked=$("weight").checked=$("remote").checked=false;render()};
+render();
+</script></body></html>
