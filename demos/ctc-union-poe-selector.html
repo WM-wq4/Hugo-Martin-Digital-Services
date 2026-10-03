@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>CTC Union Industrial PoE Switch Selector — Prototype</title>
+<style>
+:root{--ink:#24262a;--muted:#686d75;--line:#d9dde3;--soft:#f5f6f8;--red:#c9002b;--dark:#33363b;--white:#fff;--good:#147548}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--soft);color:var(--ink)}
+.wrap{max-width:1180px;margin:auto;padding:34px 20px 60px}.eyebrow{font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;color:var(--red)}
+h1{font-size:clamp(2.15rem,5vw,3.8rem);line-height:1.02;margin:.55rem 0 .9rem;color:var(--dark)}.lead{max-width:850px;color:var(--muted);font-size:1.04rem}
+.layout{display:grid;grid-template-columns:330px 1fr;gap:22px;margin-top:28px}.panel,.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 9px 26px rgba(30,35,45,.06)}
+.panel{padding:20px;align-self:start;position:sticky;top:14px}.field{margin-bottom:15px}.field label{display:block;font-weight:750;color:var(--dark);margin-bottom:6px}
+select,input{width:100%;border:1px solid #cbd1d8;border-radius:9px;padding:11px 12px;background:white;font-size:.94rem}.check{display:flex;gap:9px;align-items:flex-start;margin:10px 0}.check input{width:auto;margin-top:4px}
+.actions{display:flex;gap:8px;margin-top:18px}button{border:0;border-radius:9px;padding:11px 14px;font-weight:750;cursor:pointer;background:var(--red);color:#fff}button.secondary{background:#e9ebee;color:var(--dark)}
+.resultsHead{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:center;margin:0 0 12px;color:var(--muted)}.cards{display:grid;gap:13px}
+.card{padding:18px}.cardTop{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.card h2{margin:0;color:var(--dark);font-size:1.18rem}.kind{font-weight:750;color:var(--red);white-space:nowrap}
+.badge{display:inline-block;margin-top:7px;font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--good);background:#eaf6ef;border-radius:999px;padding:5px 8px}
+.specs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 16px;margin-top:13px}.spec{font-size:.89rem}.spec b{color:var(--dark)}
+.empty{display:none;text-align:center;padding:34px;background:white;border:1px dashed #bec4cc;border-radius:14px;color:var(--muted)}
+.note{margin-top:20px;padding:16px 18px;background:#f0f1f3;border-left:4px solid var(--red);color:#555b64;font-size:.88rem}.source{margin-top:10px;font-size:.8rem;color:var(--muted)}
+@media(max-width:860px){.layout{grid-template-columns:1fr}.panel{position:static}.specs{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.specs{grid-template-columns:1fr}.cardTop{display:block}.kind{margin-top:5px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="eyebrow">Prototype • not affiliated with CTC Union</div>
+<h1>Industrial PoE Switch Selector</h1>
+<p class="lead">A proof-of-concept that converts CTC Union's 2026 Product Selection Guide into a requirements-based selector. Set objective requirements and see only standard industrial PoE switches that satisfy every selected constraint.</p>
+
+<div class="layout">
+<section class="panel">
+  <div class="field"><label for="managed">Management</label><select id="managed"><option value="any">Any</option><option value="yes">Managed</option><option value="no">Unmanaged</option></select></div>
+  <div class="field"><label for="speed">Minimum copper access speed</label><select id="speed"><option value="0">Any</option><option value="1000">1 Gigabit</option><option value="2500">2.5 Gigabit</option></select></div>
+  <div class="field"><label for="ports">Minimum total ports</label><input id="ports" type="number" min="0" max="48" step="1" value="0"></div>
+  <div class="field"><label for="poeports">Minimum PoE ports</label><input id="poeports" type="number" min="0" max="24" step="1" value="0"></div>
+  <div class="field"><label for="fiber">Minimum fiber uplinks</label><input id="fiber" type="number" min="0" max="12" step="1" value="0"></div>
+  <div class="field"><label for="budget">Minimum PoE power budget</label><select id="budget"><option value="0">Any</option><option value="120">120 W</option><option value="180">180 W</option><option value="240">240 W</option><option value="300">300 W</option><option value="360">360 W</option></select></div>
+  <label class="check"><input id="ten" type="checkbox"><span>10GbE fiber uplink required</span></label>
+  <label class="check"><input id="bt" type="checkbox"><span>IEEE 802.3bt PoE++ required</span></label>
+  <label class="check"><input id="v24" type="checkbox"><span>24VDC input support required</span></label>
+  <div class="actions"><button id="apply">Find compatible models</button><button class="secondary" id="reset">Reset</button></div>
+</section>
+
+<section>
+  <div class="resultsHead"><strong id="count"></strong><span>27 standard industrial PoE models in verified demo dataset</span></div>
+  <div class="cards" id="cards"></div>
+  <div class="empty" id="empty">No model in this verified demo dataset satisfies every selected constraint.</div>
+</section>
+</div>
+
+<div class="note"><strong>Prototype scope:</strong> The dataset covers the managed and unmanaged Industrial PoE Switch tables in CTC Union's 2026 Product Selection Guide (printed pages 25–30). It intentionally excludes separate cyber-hardened, EN50155, IEC 61850-3 and rackmount families. This tool filters published specifications; it does not make network-design recommendations.</div>
+<div class="source">Source: CTC Union 2026 Product Selection Guide v1.9. Specifications should be rechecked with CTC Union before purchase or deployment.</div>
+</main>
+
+<script>
+const products=[
+{name:"IQS-402XSM-4PH",managed:true,family:"Managed • Gigabit/2.5G",total:6,copper:4,access:2500,sfp1:0,sfp10:2,poePorts:4,poe:"802.3af/at",budget:120,power:"48VDC"},
+{name:"IGS+402SM-4PH24",managed:true,family:"Managed • Gigabit",total:6,copper:4,access:1000,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:120,power:"24/48VDC"},
+{name:"IGS-402SW-4PB",managed:true,family:"Managed • Gigabit",total:6,copper:4,access:1000,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at/bt",budget:240,power:"48VDC"},
+{name:"IGS-402SM-4PU",managed:true,family:"Managed • Gigabit",total:6,copper:4,access:1000,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IGS-402CSW-4PH",managed:true,family:"Managed • Gigabit",total:6,copper:4,access:1000,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:120,power:"48VDC"},
+{name:"IGS+803SM-8PH",managed:true,family:"Managed • Gigabit",total:11,copper:8,access:1000,sfp1:3,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IGS+803SM-8PH24",managed:true,family:"Managed • Gigabit",total:11,copper:8,access:1000,sfp1:3,sfp10:0,poePorts:8,poe:"802.3af/at",budget:180,power:"24/48VDC"},
+{name:"IGS-1604XSM-16PH",managed:true,family:"Managed • Gigabit/10G uplink",total:20,copper:16,access:1000,sfp1:0,sfp10:4,poePorts:16,poe:"802.3af/at",budget:300,power:"48VDC"},
+{name:"IGS-1608SM-8PH",managed:true,family:"Managed • Gigabit",total:24,copper:16,access:1000,sfp1:8,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IGS-1608SM-16PH",managed:true,family:"Managed • Gigabit",total:24,copper:16,access:1000,sfp1:8,sfp10:0,poePorts:16,poe:"802.3af/at",budget:360,power:"48VDC"},
+
+{name:"IFS-402GSW-4PB",managed:true,family:"Managed • Fast Ethernet",total:6,copper:4,access:100,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at/bt",budget:240,power:"48VDC"},
+{name:"IFS-402GSM-4PU",managed:true,family:"Managed • Fast Ethernet",total:6,copper:4,access:100,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IFS-402CGSW-4PH",managed:true,family:"Managed • Fast Ethernet",total:6,copper:4,access:100,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:120,power:"48VDC"},
+{name:"IFS+803GSM-8PH",managed:true,family:"Managed • Fast Ethernet",total:11,copper:8,access:100,sfp1:3,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IFS+803GSM-8PH24",managed:true,family:"Managed • Fast Ethernet",total:11,copper:8,access:100,sfp1:3,sfp10:0,poePorts:8,poe:"802.3af/at",budget:180,power:"24/48VDC"},
+{name:"IFS-1608GSM-8PH",managed:true,family:"Managed • Fast Ethernet",total:24,copper:16,access:100,sfp1:8,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IFS-1608GSM-16PH",managed:true,family:"Managed • Fast Ethernet",total:24,copper:16,access:100,sfp1:8,sfp10:0,poePorts:16,poe:"802.3af/at",budget:360,power:"48VDC"},
+
+{name:"IGS-402CS-4PH24",managed:false,family:"Unmanaged • Gigabit",total:6,copper:4,access:1000,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:120,power:"24/48VDC"},
+{name:"IGS-402CS-4PH",managed:false,family:"Unmanaged • Gigabit",total:6,copper:4,access:1000,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:120,power:"48VDC"},
+{name:"IGS-600-4PH24",managed:false,family:"Unmanaged • Gigabit",total:6,copper:6,access:1000,sfp1:0,sfp10:0,poePorts:4,poe:"802.3af/at",budget:120,power:"24/48VDC"},
+{name:"IGS-800C-8PH",managed:false,family:"Unmanaged • Gigabit",total:8,copper:8,access:1000,sfp1:0,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IGS-802CS-8PH",managed:false,family:"Unmanaged • Gigabit",total:10,copper:8,access:1000,sfp1:2,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"},
+
+{name:"IFS-402CGS-4PH24",managed:false,family:"Unmanaged • Fast Ethernet",total:6,copper:4,access:100,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:120,power:"24/48VDC"},
+{name:"IFS-402CGS-4PH",managed:false,family:"Unmanaged • Fast Ethernet",total:6,copper:4,access:100,sfp1:2,sfp10:0,poePorts:4,poe:"802.3af/at",budget:120,power:"48VDC"},
+{name:"IFS-802CGS-8PH",managed:false,family:"Unmanaged • Fast Ethernet",total:10,copper:8,access:100,sfp1:2,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IFS-802GS-8PH",managed:false,family:"Unmanaged • Fast Ethernet",total:10,copper:8,access:100,sfp1:2,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"},
+{name:"IFS-1602GS-8PH",managed:false,family:"Unmanaged • Fast Ethernet",total:18,copper:16,access:100,sfp1:2,sfp10:0,poePorts:8,poe:"802.3af/at",budget:240,power:"48VDC"}
+];
+
+const $=id=>document.getElementById(id);
+function speedLabel(n){return n>=2500?"2.5 GbE":n>=1000?"1 GbE":"100 Mb/s";}
+function render(){
+  const managed=$("managed").value;
+  const minSpeed=+$("speed").value||0,minPorts=Math.max(0,+$("ports").value||0),minPoe=Math.max(0,+$("poeports").value||0),minFiber=Math.max(0,+$("fiber").value||0),minBudget=+$("budget").value||0;
+  const needTen=$("ten").checked,needBt=$("bt").checked,need24=$("v24").checked;
+  const matches=products.filter(p=>
+    (managed==="any"||p.managed===(managed==="yes")) &&
+    p.access>=minSpeed && p.total>=minPorts && p.poePorts>=minPoe &&
+    (p.sfp1+p.sfp10)>=minFiber && p.budget>=minBudget &&
+    (!needTen||p.sfp10>0) && (!needBt||p.poe.includes("bt")) &&
+    (!need24||p.power.includes("24"))
+  ).sort((a,b)=>a.total-b.total||a.budget-b.budget||a.name.localeCompare(b.name));
+
+  $("cards").innerHTML=matches.map(p=>{
+    const fiber=p.sfp10? p.sfp10+" × 1G/2.5G/10G SFP+" : (p.sfp1? p.sfp1+" × SFP uplink":"None");
+    return '<article class="card">'+
+      '<div class="cardTop"><div><h2>'+p.name+'</h2><span class="badge">Meets all selected constraints</span></div><div class="kind">'+p.family+'</div></div>'+
+      '<div class="specs">'+
+      '<div class="spec"><b>Management:</b> '+(p.managed?"Managed":"Unmanaged")+'</div>'+
+      '<div class="spec"><b>Total ports:</b> '+p.total+'</div>'+
+      '<div class="spec"><b>Copper access:</b> '+p.copper+' × '+speedLabel(p.access)+'</div>'+
+      '<div class="spec"><b>Fiber:</b> '+fiber+'</div>'+
+      '<div class="spec"><b>PoE:</b> '+p.poePorts+' ports • '+p.poe+'</div>'+
+      '<div class="spec"><b>PoE budget:</b> '+p.budget+' W</div>'+
+      '<div class="spec"><b>Power input:</b> '+p.power+'</div>'+
+      '<div class="spec"><b>Mount:</b> DIN rail; wall kit optional</div>'+
+      '<div class="spec"><b>Housing:</b> Metal / IP30</div>'+
+      '</div></article>';
+  }).join("");
+  $("count").textContent=matches.length+" compatible model"+(matches.length===1?"":"s");
+  $("empty").style.display=matches.length?"none":"block";
+}
+["managed","speed","ports","poeports","fiber","budget","ten","bt","v24"].forEach(id=>$(id).addEventListener("input",render));
+$("apply").onclick=render;
+$("reset").onclick=()=>{
+  $("managed").value="any";$("speed").value="0";$("ports").value=0;$("poeports").value=0;$("fiber").value=0;$("budget").value="0";$("ten").checked=false;$("bt").checked=false;$("v24").checked=false;render();
+};
+render();
+</script>
+</body>
+</html>
